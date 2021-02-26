@@ -1,13 +1,16 @@
 class Fuzzy{
     constructor(matrix){
-        this.matrix = matrix;
-        this.geomean = [];
-        this.gtotal = [];
-        this.ginverse =[];
-        this.fweight = Array(this.matrix.length).fill().map(()=>Array(this.matrix[0][0].length).fill());
-        this.median = [];
-        this.mitotal = 0;
-        this.normalized =Array(this.matrix.length);
+        this.matrix          = matrix;
+        this.row             = matrix.length;
+        this.col             = matrix[0].length;
+        this.nvalue          = matrix[0][0].length;
+        this.geomean         = [];
+        this.gtotal          = [];
+        this.ginverse        =[];
+        this.fweight         = Array(this.row).fill().map(()=>Array(this.nvalue).fill());
+        this.median          = [];
+        this.mitotal         = 0;
+        this.normalized      =Array(this.row);
         this.normalizedtotal = 0;
     }
 
@@ -16,25 +19,24 @@ class Fuzzy{
     }
 
     calcGmean () {
-        let m = this.matrix.length;
-        for (let j=0;j<m;j++){
+        for (let j=0;j<this.row;j++){
             let awal = this.matrix[j][0];
-            for (let i=0;i<this.matrix[0].length-1; i++){
+            for (let i=0;i<this.col-1; i++){
                 let n = i+1;
                 awal = awal.map((res, i) => res * this.matrix[j][n][i]);
             }
             this.geomean.push(awal)
-            for (let i=0;i<3; i++){
-                this.geomean[j][i] = Math.pow(this.geomean[j][i],1/m);
+            for (let i=0;i<this.nvalue; i++){
+                this.geomean[j][i] = Math.pow(this.geomean[j][i],1/this.row);
             }
         }
         return this
     }
     
     calcGtotal () {
-        for (let j=0;j<this.geomean[0].length;j++){ 
+        for (let j=0;j<this.nvalue;j++){ 
             let up = 0;
-            for (let i=0;i<this.geomean.length;i++){
+            for (let i=0;i<this.row;i++){
                 up += this.geomean[i][j]
             }      
             this.gtotal.push(up)
@@ -43,7 +45,7 @@ class Fuzzy{
     }
     
     calcInverse () {
-        for (let i=0;i<this.gtotal.length;i++){
+        for (let i=0;i<this.nvalue;i++){
             this.ginverse[i] = 1/this.gtotal[i];
         }
         this.ginverse.reverse();
@@ -51,8 +53,8 @@ class Fuzzy{
     }
     
     calcFweight () {
-        for (let i=0;i<this.geomean.length;i++){
-            for (let j=0;j<this.ginverse.length;j++){
+        for (let i=0;i<this.row;i++){
+            for (let j=0;j<this.nvalue;j++){
                 this.fweight[i][j] = this.geomean[i][j]*this.ginverse[j];
             }
         }
@@ -60,26 +62,26 @@ class Fuzzy{
     }
     
     calcMedian () {
-        for (let i=0;i<this.fweight.length;i++){
+        for (let i=0;i<this.row;i++){
             let nilai = 0
-            for (let j=0;j<this.fweight[i].length;j++){
+            for (let j=0;j<this.nvalue;j++){
                 nilai += this.fweight[i][j];
             }
             
             nilai = nilai/this.fweight[i].length;
             this.median.push(nilai)
         }
-        for (let k=0;k<this.median.length;k++){
+        for (let k=0;k<this.row;k++){
             this.mitotal += this.median[k];
         }
         return this
     }
     
     normalize () {
-        for (let i=0;i<this.median.length;i++){
+        for (let i=0;i<this.row;i++){
             this.normalized[i] = this.median[i]/this.mitotal;
         }
-        for (let j=0;j<this.median.length;j++){
+        for (let j=0;j<this.row;j++){
             this.normalizedtotal += this.normalized[j];
         }
         return this
@@ -95,4 +97,5 @@ let base = [
     [[1/6,1/5,1/4],[1/8,1/7,1/6],[1/4,1/3,1/2],[4,5,6],      [1,1,1]]
 ]
 const fahp = new Fuzzy(base)
+console.log(fahp)
 console.log(fahp.calcGmean().calcGtotal().calcInverse().calcFweight().calcMedian().normalize())
